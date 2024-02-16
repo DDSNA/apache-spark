@@ -1,30 +1,59 @@
-#
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-FROM spark:3.5.0-scala2.12-java17-ubuntu
+FROM python:3.10-bullseye as spark-base
 
-USER root
-EXPOSE 8888 8080 22 7077 6066
-
-RUN set -ex; \
-    apt-get update; \
-    apt-get install -y python3 python3-pip; \
-    apt-get install -y r-base r-base-dev; \
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      sudo \
+      curl \
+      vim \
+      unzip \
+      rsync \
+      openjdk-11-jdk \
+      build-essential \
+      software-properties-common \
+      ssh && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV R_HOME /usr/lib/R
+# Set Spark environment variables
+ENV SPARK_HOME=${SPARK_HOME:-"/opt/spark"}
+ENV HADOOP_HOME=${HADOOP_HOME:-"/opt/hadoop"}
 
-USER spark
+# Create directories for Spark and Hadoop
+RUN mkdir -p ${HADOOP_HOME} && mkdir -p ${SPARK_HOME}
+WORKDIR ${SPARK_HOME}
+
+# Download and install Spark
+RUN curl https://dlcdn.apache.org/spark/spark-3.3.1/spark-3.3.1-bin-hadoop3.tgz -o spark-3.3.1-bin-hadoop3.tgz \
+ && tar xvzf spark-3.3.1-bin-hadoop3.tgz --directory /opt/spark --strip-components  1 \
+ && rm -rf spark-3.3.1-bin-hadoop3.tgz
+
+# Install Python dependencies
+COPY requirements/requirements.txt .
+RUN pip3 install -r requirements.txt
+
+# Set Spark configurations and paths
+ENV PATH="/opt/spark/sbin:/opt/spark/bin:${PATH}"
+ENV SPARK_HOME="/opt/spark"
+ENV SPARK_MASTER="spark://spark-master:7077"
+ENV SPARK_MASTER_HOST spark-master
+ENV SPARK_MASTER_PORT  7077
+ENV PYSPARK_PYTHON python3
+
+# Copy Spark configuration files
+COPY conf/spark-defaults.conf "$SPARK_HOME/conf"
+
+# Set execute permissions
+RUN chmod u+x /opt/spark/sbin/* && \
+    chmod u+x /opt/spark/bin/*
+
+# Set Python path
+ENV PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
+
+# Copy entrypoint script
+COPY entrypoint.sh .
+
+# Set the entrypoint
+ENTRYPOINT ["./entrypoint.sh"]
+
+EXPOSE 7077 8080 22 6066
