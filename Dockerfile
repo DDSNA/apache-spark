@@ -14,7 +14,10 @@ EXPOSE  8080
 COPY startup.sh /startup.sh
 
 # Make the startup script executable
+USER root
 RUN chmod +x /startup.sh
+
+USER airflow
 
 # Run the startup script
 CMD ["/startup.sh"]
