@@ -7,7 +7,7 @@ RUN pip install --no-cache-dir --user my-awesome-pip-dependency-to-add
 # If you need to add system-level dependencies, switch to the root user
 USER root
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends my-awesome-apt-dependency-to-add && \
+    apt-get install -y --no-install-recommends pandas && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
