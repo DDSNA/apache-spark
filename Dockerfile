@@ -17,7 +17,7 @@
 FROM spark:3.5.0-scala2.12-java17-ubuntu
 
 USER root
-EXPOSE 8888 8080 22
+EXPOSE 8888 8080 22 7077 6066
 
 RUN set -ex; \
     apt-get update; \
