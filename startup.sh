@@ -1,7 +1,3 @@
-#!/bin/sh
-
-# Initialize the Airflow database
+#!/bin/bash
 airflow db init
-
-# Start the Airflow webserver
 airflow webserver
