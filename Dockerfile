@@ -1,59 +1,24 @@
-FROM python:3.10-bullseye as spark-base
+# Use the official Airflow image as the base
+FROM apache/airflow:2.2.5
 
-# Install dependencies
+# Switch to the root user to install system dependencies
+USER root
+
+# Update the package list and install Java Runtime Environment (JRE)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      sudo \
-      curl \
-      vim \
-      unzip \
-      rsync \
-      openjdk-11-jdk \
-      build-essential \
-      software-properties-common \
-      ssh && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y openjdk-11-jre-headless && \
+    apt-get clean
 
-# Set Spark environment variables
-ENV SPARK_HOME=${SPARK_HOME:-"/opt/spark"}
-ENV HADOOP_HOME=${HADOOP_HOME:-"/opt/hadoop"}
+# Switch back to the airflow user
+USER airflow
 
-# Create directories for Spark and Hadoop
-RUN mkdir -p ${HADOOP_HOME} && mkdir -p ${SPARK_HOME}
-WORKDIR ${SPARK_HOME}
+# Copy your DAGs and other necessary files into the container
+COPY ./dags /usr/local/airflow/dags
 
-# Download and install Spark
-RUN curl https://dlcdn.apache.org/spark/spark-3.3.1/spark-3.3.1-bin-hadoop3.tgz -o spark-3.3.1-bin-hadoop3.tgz \
- && tar xvzf spark-3.3.1-bin-hadoop3.tgz --directory /opt/spark --strip-components  1 \
- && rm -rf spark-3.3.1-bin-hadoop3.tgz
+# Install any additional Python packages you need
+RUN pip install your-package-name
 
-# Install Python dependencies
-COPY requirements/requirements.txt .
-RUN pip3 install -r requirements.txt
-
-# Set Spark configurations and paths
-ENV PATH="/opt/spark/sbin:/opt/spark/bin:${PATH}"
-ENV SPARK_HOME="/opt/spark"
-ENV SPARK_MASTER="spark://spark-master:7077"
-ENV SPARK_MASTER_HOST spark-master
-ENV SPARK_MASTER_PORT  7077
-ENV PYSPARK_PYTHON python3
-
-# Copy Spark configuration files
-COPY conf/spark-defaults.conf "$SPARK_HOME/conf"
-
-# Set execute permissions
-RUN chmod u+x /opt/spark/sbin/* && \
-    chmod u+x /opt/spark/bin/*
-
-# Set Python path
-ENV PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
-
-# Copy entrypoint script
-COPY entrypoint.sh .
-
-# Set the entrypoint
-ENTRYPOINT ["./entrypoint.sh"]
-
-EXPOSE 7077 8080 22 6066
+# If you need to add other components like Hadoop, Hive, etc., do so here
+# COPY hadoop-*.tar.gz /opt/hadoop/
+# COPY hive-*.tar.gz /opt/hive/
+# COPY gcs-connector-*.jar /opt/hadoop/lib/
