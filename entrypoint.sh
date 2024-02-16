@@ -1,1 +1,1 @@
-SPARK_NO_DAEMONIZE=true
+spark-class org.apache.spark.deploy.master.Master --daemonize no
