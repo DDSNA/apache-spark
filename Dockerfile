@@ -20,4 +20,4 @@ RUN chmod +x /startup.sh
 USER airflow
 
 # Run the startup script
-CMD ["/startup.sh"]
+CMD ["db init"]
