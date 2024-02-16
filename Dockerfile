@@ -10,5 +10,11 @@ USER airflow
 # Expose the webserver port
 EXPOSE  8080
 
-# Set the default command to run the webserver
-CMD ["airflow db init && airflow webserver"]
+# Copy the startup script into the container
+COPY startup.sh /startup.sh
+
+# Make the startup script executable
+RUN chmod +x /startup.sh
+
+# Run the startup script
+CMD ["/startup.sh"]
