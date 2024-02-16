@@ -11,4 +11,4 @@ USER airflow
 EXPOSE  8080
 
 # Set the default command to run the webserver
-CMD ["sh", "-c", "airflow db init && airflow webserver"]
+CMD ["airflow db init && airflow webserver"]
