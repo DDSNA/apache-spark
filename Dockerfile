@@ -1,5 +1,5 @@
 # Use the official Airflow image as the base
-FROM apache/airflow:2.2.5
+FROM apache/airflow:latest
 
 # Install additional Python packages
 RUN pip install --no-cache-dir --user pandas matplotlib numpy
