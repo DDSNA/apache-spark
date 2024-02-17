@@ -3,7 +3,7 @@ FROM apache/airflow:2.8.1-python3.8
 
 # Install any additional system libraries or Python packages
 # For example, to install the 'requests' Python library, you can use:
-RUN pip install requests matplotlib
+RUN pip install requests matplotlib pandas numpy polars seaborn
 
 # Copy any additional files or directories into the image
 # For example, to copy a custom configuration file:
