@@ -13,3 +13,4 @@ RUN pip install requests matplotlib pandas numpy polars seaborn
 # For example, to set the AIRFLOW_HOME environment variable:
 ENV AIRFLOW_HOME /opt/airflow
 CMD ["airflow","db","init"]
+RUN ["webserver"]
